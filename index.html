@@ -37,7 +37,7 @@
       background-color: #f1eee5;
     }
 
-    /* Page container - no box, clean */
+    /* Page container */
     .page-book {
       width: 100%;
       max-width: 100%;
@@ -75,7 +75,7 @@
       border-radius: 2px;
     }
 
-    /* Range slider styling - Quran themed */
+    /* Range slider styling */
     input[type="range"] {
       -webkit-appearance: none;
       appearance: none;
@@ -109,7 +109,7 @@
       to { transform: rotate(360deg); }
     }
 
-    /* Mobile touch targets */
+    /* Touch targets */
     .touch-target {
       min-width: 44px;
       min-height: 44px;
@@ -118,22 +118,14 @@
       justify-content: center;
     }
 
-    /* Prevent zoom on buttons */
     button, .no-zoom {
       touch-action: manipulation;
     }
 
-    /* Smooth image loading */
-    .quran-page {
-      transition: opacity 0.2s ease;
-    }
-    .quran-page.loading {
-      opacity: 0.5;
-    }
-
-    /* Modal styling - Quran themed */
+    /* Modal styling */
     .modal-backdrop {
       background-color: rgba(92, 75, 55, 0.5);
+      backdrop-filter: blur(4px);
     }
 
     .modal-content {
@@ -141,12 +133,121 @@
       border: none;
       box-shadow: 0 10px 40px rgba(92, 75, 55, 0.2);
     }
+
+    /* Bookmark popup */
+    .bookmark-popup {
+      position: fixed;
+      background-color: #faf8f3;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(92, 75, 55, 0.3);
+      z-index: 100;
+      transition: all 0.3s ease;
+      max-width: 90vw;
+      width: 320px;
+    }
+
+    .bookmark-popup.keyboard-open {
+      transform: translateY(-30%) !important;
+    }
+
+    /* Input styling */
+    .bookmark-input {
+      background-color: #ffffff;
+      border: 2px solid #e6e2d8;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 16px;
+      color: #5c4b37;
+      width: 100%;
+      transition: all 0.2s ease;
+    }
+
+    .bookmark-input:focus {
+      outline: none;
+      border-color: #d4a574;
+      box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.2);
+    }
+
+    .bookmark-input::placeholder {
+      color: #8b7355;
+    }
+
+    /* Button styling */
+    .btn-primary {
+      background-color: #8b7355;
+      color: #faf8f3;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary:hover {
+      background-color: #6b5a45;
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background-color: #e6e2d8;
+      color: #5c4b37;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+      background-color: #d4cfc4;
+    }
+
+    /* Verse counter badge */
+    .verse-badge {
+      background-color: #d4a574;
+      color: #faf8f3;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 12px;
+      margin-left: 8px;
+    }
+
+    /* Wake Lock indicator */
+    .wake-lock-indicator {
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #8b7355;
+      color: #faf8f3;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      box-shadow: 0 4px 12px rgba(92, 75, 55, 0.3);
+      z-index: 40;
+      display: none;
+    }
+
+    .wake-lock-indicator.active {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
   </style>
 </head>
 <body class="min-h-screen" style="background-color: #f1eee5;">
   <div id="app" class="flex flex-col min-h-screen">
 
-    <!-- Header - Clean, no borders -->
+    <!-- Header -->
     <header id="header" class="ui-element sticky top-0 z-50" style="background-color: #f1eee5;">
       <div class="px-2 sm:px-4 py-2 sm:py-3 flex items-center justify-between">
         <div class="flex items-center gap-2 sm:gap-3">
@@ -162,6 +263,13 @@
         </div>
 
         <div class="flex items-center gap-1 sm:gap-2">
+          <!-- Screen Wake Lock Toggle -->
+          <button id="wakeLockBtn" class="touch-target p-2 rounded-lg hover:bg-opacity-80 transition-colors" style="color: #5c4b37;" onmouseover="this.style.backgroundColor='#e6e2d8'" onmouseout="this.style.backgroundColor='transparent'" title="Tetap Aktif">
+            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+            </svg>
+          </button>
+
           <!-- Surah Button -->
           <button id="surahBtn" class="touch-target p-2 rounded-lg hover:bg-opacity-80 transition-colors" style="color: #5c4b37;" onmouseover="this.style.backgroundColor='#e6e2d8'" onmouseout="this.style.backgroundColor='transparent'">
             <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -189,7 +297,6 @@
     <!-- Main Content -->
     <main id="mainContent" class="flex-1 flex items-center justify-center p-0 sm:p-4 ui-element relative">
       <div class="w-full flex flex-col items-center" style="background-color: #f1eee5;">
-        <!-- Page container - no box -->
         <div id="book" class="page-book"></div>
 
         <!-- Loading indicator -->
@@ -199,26 +306,32 @@
         </div>
       </div>
 
-      <!-- Fullscreen Exit Button (visible in immersive mode) -->
+      <!-- Fullscreen Exit Button -->
       <button id="exitFullscreenBtn" class="hidden fixed top-4 right-4 z-50 touch-target p-3 rounded-full shadow-lg transition-all hover:scale-110" style="background-color: #8b7355; color: #faf8f3;">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
         </svg>
       </button>
+
+      <!-- Wake Lock Indicator -->
+      <div id="wakeLockIndicator" class="wake-lock-indicator">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+        </svg>
+        <span>Layar Aktif</span>
+      </div>
     </main>
 
-    <!-- Footer Controls - Clean design -->
+    <!-- Footer Controls -->
     <footer id="footer" class="ui-element sticky bottom-0 z-50" style="background-color: #f1eee5;">
       <div class="px-2 sm:px-4 py-3 sm:py-4">
         <div class="flex items-center gap-2 sm:gap-4">
-          <!-- Previous Button -->
           <button id="prevBtn" class="touch-target p-3 rounded-full text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105" style="background-color: #8b7355;">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
             </svg>
           </button>
 
-          <!-- Page Slider -->
           <div class="flex-1 min-w-0">
             <div class="flex items-center justify-between mb-1 sm:mb-2">
               <span class="text-xs sm:text-sm font-medium" style="color: #5c4b37;">
@@ -229,7 +342,6 @@
             <input type="range" id="pageSlider" min="1" max="604" value="1" class="w-full">
           </div>
 
-          <!-- Next Button -->
           <button id="nextBtn" class="touch-target p-3 rounded-full text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105" style="background-color: #8b7355;">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
@@ -237,7 +349,6 @@
           </button>
         </div>
 
-        <!-- Page jump buttons -->
         <div class="flex justify-center gap-2 mt-3">
           <button onclick="jumpPages(-10)" class="px-3 py-1 text-xs rounded-lg transition-all hover:scale-105" style="background-color: #e6e2d8; color: #5c4b37;">
             -10
@@ -254,6 +365,31 @@
         </div>
       </div>
     </footer>
+  </div>
+
+  <!-- Bookmark Popup (hidden by default) -->
+  <div id="bookmarkPopup" class="bookmark-popup hidden">
+    <div class="p-6">
+      <h3 class="text-lg font-bold mb-2" style="color: #5c4b37;">Tambah Penanda</h3>
+      <p class="text-sm mb-4" style="color: #8b7355;">Halaman <span id="bookmarkPageNum"></span></p>
+
+      <div class="mb-4">
+        <label for="verseInput" class="block text-sm font-medium mb-2" style="color: #5c4b37;">Nomor Ayat (Opsional)</label>
+        <input
+          type="number"
+          id="verseInput"
+          class="bookmark-input"
+          placeholder="Contoh: 1-10 atau 5"
+          min="1"
+        />
+        <p class="text-xs mt-2" style="color: #8b7355;">Ketik nomor ayat untuk mengingat posisi bacaan</p>
+      </div>
+
+      <div class="flex gap-3">
+        <button id="cancelBookmark" class="btn-secondary flex-1">Batal</button>
+        <button id="confirmBookmark" class="btn-primary flex-1">Simpan</button>
+      </div>
+    </div>
   </div>
 
   <!-- Surah Modal -->
