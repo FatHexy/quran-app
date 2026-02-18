@@ -146,10 +146,6 @@
       width: 320px;
     }
 
-    .bookmark-popup.keyboard-open {
-      transform: translateY(-30%) !important;
-    }
-
     /* Input styling */
     .bookmark-input {
       background-color: #ffffff;
@@ -214,34 +210,6 @@
       border-radius: 12px;
       margin-left: 8px;
     }
-
-    /* Wake Lock indicator */
-    .wake-lock-indicator {
-      position: fixed;
-      bottom: 100px;
-      left: 50%;
-      transform: translateX(-50%);
-      background-color: #8b7355;
-      color: #faf8f3;
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-size: 12px;
-      box-shadow: 0 4px 12px rgba(92, 75, 55, 0.3);
-      z-index: 40;
-      display: none;
-    }
-
-    .wake-lock-indicator.active {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
-    }
   </style>
 </head>
 <body class="min-h-screen" style="background-color: #f1eee5;">
@@ -266,7 +234,7 @@
           <!-- Screen Wake Lock Toggle -->
           <button id="wakeLockBtn" class="touch-target p-2 rounded-lg hover:bg-opacity-80 transition-colors" style="color: #5c4b37;" onmouseover="this.style.backgroundColor='#e6e2d8'" onmouseout="this.style.backgroundColor='transparent'" title="Tetap Aktif">
             <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
             </svg>
           </button>
 
@@ -312,14 +280,6 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
         </svg>
       </button>
-
-      <!-- Wake Lock Indicator -->
-      <div id="wakeLockIndicator" class="wake-lock-indicator">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-        </svg>
-        <span>Layar Aktif</span>
-      </div>
     </main>
 
     <!-- Footer Controls -->

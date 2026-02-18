@@ -180,6 +180,7 @@ async function initWakeLock() {
     if (savedState === 'true') {
       await requestWakeLock();
     }
+    updateWakeLockIcon();
   } else {
     console.warn('Wake Lock API not supported');
   }
@@ -192,11 +193,11 @@ async function requestWakeLock() {
       wakeLock.addEventListener('release', () => {
         console.log('Wake Lock released');
         wakeLock = null;
-        document.getElementById('wakeLockIndicator').classList.remove('active');
         localStorage.setItem(STORAGE_KEYS.WAKE_LOCK, 'false');
+        updateWakeLockIcon();
       });
-      document.getElementById('wakeLockIndicator').classList.add('active');
       localStorage.setItem(STORAGE_KEYS.WAKE_LOCK, 'true');
+      updateWakeLockIcon();
       console.log('Wake Lock active');
     }
   } catch (err) {
@@ -208,8 +209,8 @@ async function releaseWakeLock() {
   if (wakeLock !== null) {
     await wakeLock.release();
     wakeLock = null;
-    document.getElementById('wakeLockIndicator').classList.remove('active');
     localStorage.setItem(STORAGE_KEYS.WAKE_LOCK, 'false');
+    updateWakeLockIcon();
   }
 }
 
@@ -221,26 +222,39 @@ function toggleWakeLock() {
   }
 }
 
+function updateWakeLockIcon() {
+  const btn = document.getElementById('wakeLockBtn');
+  if (!btn) return;
+
+  const isActive = wakeLock !== null;
+
+  if (isActive) {
+    // Show sun icon (active state)
+    btn.innerHTML = `
+      <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+      </svg>
+    `;
+    btn.style.backgroundColor = '#d4a574';
+    btn.style.color = '#faf8f3';
+  } else {
+    // Show moon icon (inactive state)
+    btn.innerHTML = `
+      <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+      </svg>
+    `;
+    btn.style.backgroundColor = 'transparent';
+    btn.style.color = '#5c4b37';
+  }
+}
+
 // Handle visibility change for Wake Lock
 document.addEventListener('visibilitychange', async () => {
   if (wakeLock !== null && document.visibilityState === 'visible') {
     await requestWakeLock();
   }
 });
-
-// Do Not Disturb (DND) - Not available via web API
-// This is a platform limitation - we can't control DND from a web page
-async function checkDNDPermission() {
-  // DND API doesn't exist in web browsers
-  // This would require a native app
-  console.log('DND control requires native app - not available in web browser');
-
-  // We can show a message to the user
-  if ('Notification' in window) {
-    const permission = await Notification.requestPermission();
-    console.log('Notification permission:', permission);
-  }
-}
 
 // Bookmark Popup
 function showBookmarkPopup() {
@@ -251,26 +265,16 @@ function showBookmarkPopup() {
   pageNum.textContent = currentPage;
   verseInput.value = '';
 
-  // Center the popup
+  // Center the popup and keep it there
   popup.style.top = '50%';
   popup.style.left = '50%';
   popup.style.transform = 'translate(-50%, -50%)';
   popup.classList.remove('hidden');
-
-  // Handle keyboard open - move up
-  verseInput.addEventListener('focus', () => {
-    popup.classList.add('keyboard-open');
-  });
-
-  verseInput.addEventListener('blur', () => {
-    popup.classList.remove('keyboard-open');
-  });
 }
 
 function hideBookmarkPopup() {
   const popup = document.getElementById('bookmarkPopup');
   popup.classList.add('hidden');
-  popup.classList.remove('keyboard-open');
 }
 
 function saveBookmarkFromPopup() {
@@ -514,7 +518,7 @@ function initNavigation() {
   });
 }
 
-// Touch/swipe support - REVERSED for Quran RTL
+// Touch/swipe support - REVERSED: Swipe right = next page
 function initTouchSupport() {
   let touchStartX = 0;
   let touchStartY = 0;
@@ -537,12 +541,14 @@ function initTouchSupport() {
   function handleSwipe() {
     const swipeThreshold = 40;
     const verticalDiff = Math.abs(touchEndY - touchStartY);
-    const horizontalDiff = touchStartX - touchEndX;
+    const horizontalDiff = touchEndX - touchStartX;
 
     if (Math.abs(horizontalDiff) > swipeThreshold && Math.abs(horizontalDiff) > verticalDiff) {
       if (horizontalDiff > 0 && currentPage < TOTAL_PAGES) {
+        // Swipe right = next page (increase)
         navigateToPage(currentPage + 1);
       } else if (horizontalDiff < 0 && currentPage > 1) {
+        // Swipe left = previous page (decrease)
         navigateToPage(currentPage - 1);
       }
     }
@@ -566,9 +572,6 @@ async function init() {
   initSurahModal();
   initBookmarkModal();
   initTouchSupport();
-
-  // Check DND (just informational)
-  checkDNDPermission();
 
   updateUI();
   loadPage(currentPage);
