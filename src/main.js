@@ -1,4 +1,3 @@
-import { PageFlip } from 'page-flip';
 import { SURAH_DATA } from './data/surahs.js';
 
 // Configuration
@@ -6,10 +5,10 @@ const TOTAL_PAGES = 604;
 const IMAGE_BASE_URL = 'https://media.qurankemenag.net/khat2/QK_';
 
 // App State
-let pageFlip = null;
 let currentPage = 1;
 let isDarkMode = false;
 let isImmersiveMode = false;
+let preloadedImages = new Map();
 
 // LocalStorage keys
 const STORAGE_KEYS = {
@@ -19,193 +18,133 @@ const STORAGE_KEYS = {
   IMMERSIVE: 'quran_immersive'
 };
 
-// Image preloader with smart caching
-class ImagePreloader {
-  constructor() {
-    this.cache = new Map();
-    this.preloadQueue = [];
-  }
+// Get image URL for a page
+function getImageUrl(page) {
+  const pageNum = String(page).padStart(3, '0');
+  return `${IMAGE_BASE_URL}${pageNum}.webp`;
+}
 
-  getImageUrl(page) {
-    const pageNum = String(page).padStart(3, '0');
-    return `${IMAGE_BASE_URL}${pageNum}.webp`;
-  }
+// Preload images around current page
+function preloadPages(page) {
+  const pagesToLoad = [];
 
-  loadImage(page) {
-    return new Promise((resolve, reject) => {
-      const url = this.getImageUrl(page);
+  // Preload previous and next pages
+  if (page > 1) pagesToLoad.push(page - 1);
+  if (page < TOTAL_PAGES) pagesToLoad.push(page + 1);
+  if (page > 2) pagesToLoad.push(page - 2);
+  if (page < TOTAL_PAGES - 1) pagesToLoad.push(page + 2);
 
-      if (this.cache.has(url)) {
-        resolve(this.cache.get(url));
-        return;
-      }
-
+  pagesToLoad.forEach(pageNum => {
+    if (!preloadedImages.has(pageNum)) {
       const img = new Image();
-      img.onload = () => {
-        this.cache.set(url, img);
-        resolve(img);
-      };
-      img.onerror = () => reject(new Error(`Failed to load page ${page}`));
-      img.src = url;
-    });
-  }
-
-  async preloadPages(currentPage) {
-    const pagesToPreload = [];
-
-    // Preload previous and next pages
-    if (currentPage > 1) pagesToPreload.push(currentPage - 1);
-    if (currentPage < TOTAL_PAGES) pagesToPreload.push(currentPage + 1);
-
-    // Preload 2 pages ahead and behind for smooth experience
-    if (currentPage > 2) pagesToPreload.push(currentPage - 2);
-    if (currentPage < TOTAL_PAGES - 1) pagesToPreload.push(currentPage + 2);
-
-    const promises = pagesToPreload.map(page =>
-      this.loadImage(page).catch(err => {
-        console.warn(`Preload failed for page ${page}:`, err);
-      })
-    );
-
-    await Promise.all(promises);
-  }
-}
-
-const preloader = new ImagePreloader();
-
-// Initialize PageFlip
-function initPageFlip() {
-  const bookElement = document.getElementById('book');
-
-  // Detect mobile
-  const isMobile = window.innerWidth < 768;
-
-  pageFlip = new PageFlip(bookElement, {
-    width: isMobile ? window.innerWidth - 4 : 800,
-    height: isMobile ? (window.innerWidth - 4) * 1.414 : 1131,
-    size: 'stretch',
-    minWidth: 300,
-    maxWidth: 1600,
-    minHeight: 424,
-    maxHeight: 2262,
-    maxShadowOpacity: 0.3,
-    showCover: false,
-    mobileScrollSupport: false,
-    useMouseEvents: true,
-    swipeDistance: isMobile ? 40 : 30,
-    clickEventForward: true,
-    usePortrait: isMobile,
-    startPage: 1,
-    drawShadow: true,
-    flippingTime: isMobile ? 400 : 600,
-    usePortrait: isMobile
-  });
-
-  // Load initial pages
-  loadPages(currentPage);
-
-  // Page flip event handler
-  pageFlip.on('flip', (e) => {
-    const newPage = e.data + 1;
-    if (newPage !== currentPage) {
-      currentPage = newPage;
-      updateUI();
-      preloader.preloadPages(currentPage);
-      saveState();
-    }
-  });
-
-  // Handle orientation change for mobile
-  window.addEventListener('resize', () => {
-    const newIsMobile = window.innerWidth < 768;
-    if (newIsMobile !== isMobile) {
-      location.reload();
+      img.src = getImageUrl(pageNum);
+      preloadedImages.set(pageNum, img);
     }
   });
 }
 
-// Load pages dynamically
-async function loadPages(startPage) {
-  const pages = [];
+// Load and display current page
+function loadPage(page) {
+  const bookContainer = document.getElementById('book');
+  const imgUrl = getImageUrl(page);
 
-  console.log('Loading pages starting from:', startPage);
+  // Create page container
+  bookContainer.innerHTML = `
+    <div class="quran-page-container relative w-full h-full flex items-center justify-center bg-white dark:bg-gray-800">
+      <img
+        id="quranPageImage"
+        src="${imgUrl}"
+        alt="Halaman ${page}"
+        class="w-full h-auto max-w-full ${isDarkMode ? 'dark-mode-img' : ''}"
+        loading="eager"
+      />
 
-  // Create page elements
-  for (let i = 0; i < 3; i++) {
-    const pageNum = startPage + i;
-    if (pageNum > TOTAL_PAGES) break;
+      <!-- Left tap zone - Next page (Quran RTL) -->
+      <div
+        id="leftTapZone"
+        class="absolute left-0 top-0 bottom-0 w-1/3 cursor-pointer z-10"
+        title="Halaman Selanjutnya"
+      ></div>
 
-    const pageDiv = document.createElement('div');
-    pageDiv.className = 'page';
+      <!-- Right tap zone - Previous page (Quran RTL) -->
+      <div
+        id="rightTapZone"
+        class="absolute right-0 top-0 bottom-0 w-1/3 cursor-pointer z-10"
+        title="Halaman Sebelumnya"
+      ></div>
 
-    const contentDiv = document.createElement('div');
-    contentDiv.className = 'page-content';
-    contentDiv.style.cssText = 'width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: white;';
+      <!-- Center tap zone - Toggle immersive mode -->
+      <div
+        id="centerTapZone"
+        class="absolute top-0 bottom-0 left-1/3 right-1/3 cursor-pointer z-10"
+        title="Mode Imersif"
+      ></div>
 
-    const img = document.createElement('img');
-    const imgUrl = preloader.getImageUrl(pageNum);
-    console.log('Loading image:', imgUrl);
+      <!-- Loading overlay -->
+      <div id="loadingOverlay" class="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-900 hidden">
+        <div class="spinner w-8 h-8"></div>
+      </div>
+    </div>
+  `;
 
-    img.src = imgUrl;
-    img.alt = `Halaman ${pageNum}`;
-    img.className = isDarkMode ? 'dark-mode-img' : '';
-    img.style.cssText = 'width: 100%; height: 100%; object-fit: contain; display: block;';
+  const imgElement = document.getElementById('quranPageImage');
 
-    img.onload = () => {
-      console.log('Image loaded successfully:', pageNum);
-    };
+  // Show loading while image loads
+  imgElement.onload = () => {
+    console.log('Page loaded:', page);
+    preloadPages(page);
+  };
 
-    img.onerror = () => {
-      console.error('Failed to load image:', imgUrl);
-      contentDiv.innerHTML = `
-        <div class="flex flex-col items-center justify-center h-full text-gray-500 p-4">
-          <svg class="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-          </svg>
-          <p class="text-sm">Gagal memuat halaman ${pageNum}</p>
-          <button onclick="retryPage(${pageNum})" class="mt-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm">Coba Lagi</button>
-        </div>
-      `;
-    };
+  imgElement.onerror = () => {
+    bookContainer.innerHTML = `
+      <div class="flex flex-col items-center justify-center h-full p-8 text-gray-500">
+        <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        <p class="text-lg mb-2">Gagal memuat halaman ${page}</p>
+        <p class="text-sm mb-4">Periksa koneksi internet Anda</p>
+        <button onclick="retryLoadPage(${page})" class="px-6 py-3 bg-emerald-600 text-white rounded-lg">
+          Coba Lagi
+        </button>
+      </div>
+    `;
+  };
 
-    contentDiv.appendChild(img);
-    pageDiv.appendChild(contentDiv);
-    pages.push(pageDiv);
-  }
+  // Set up tap zones
+  document.getElementById('leftTapZone').addEventListener('click', () => {
+    if (page < TOTAL_PAGES) navigateToPage(page + 1);
+  });
 
-  console.log('Loading', pages.length, 'pages into PageFlip');
-  await pageFlip.loadFromHTML(pages);
-  console.log('Pages loaded successfully');
-  await preloader.preloadPages(startPage);
+  document.getElementById('rightTapZone').addEventListener('click', () => {
+    if (page > 1) navigateToPage(page - 1);
+  });
+
+  document.getElementById('centerTapZone').addEventListener('click', () => {
+    toggleImmersiveMode();
+  });
 }
 
 // Retry loading a page
-window.retryPage = async function(pageNum) {
-  try {
-    await preloader.loadImage(pageNum);
-    loadPages(currentPage);
-  } catch (error) {
-    console.error('Retry failed:', error);
-  }
+window.retryLoadPage = function(page) {
+  loadPage(page);
 };
 
 // UI Update functions
 function updateUI() {
-  // Update page display
   document.getElementById('currentPageDisplay').textContent = currentPage;
   document.getElementById('pageSlider').value = currentPage;
 
   // Update navigation buttons
-  document.getElementById('prevBtn').disabled = currentPage <= 1;
-  document.getElementById('nextBtn').disabled = currentPage >= TOTAL_PAGES;
+  document.getElementById('prevBtn').disabled = currentPage >= TOTAL_PAGES;
+  document.getElementById('nextBtn').disabled = currentPage <= 1;
 }
 
 function navigateToPage(page) {
   if (page < 1 || page > TOTAL_PAGES) return;
 
-  pageFlip.flip(page - 1);
   currentPage = page;
   updateUI();
+  loadPage(currentPage);
   saveState();
 }
 
@@ -220,6 +159,8 @@ function toggleTheme() {
   isDarkMode = !isDarkMode;
   applyTheme();
   localStorage.setItem(STORAGE_KEYS.THEME, isDarkMode ? 'dark' : 'light');
+  // Reload page to apply theme to current image
+  loadPage(currentPage);
 }
 
 function applyTheme() {
@@ -234,18 +175,6 @@ function applyTheme() {
   } else {
     sunIcon.classList.add('hidden');
     moonIcon.classList.remove('hidden');
-  }
-
-  // Reload pages to apply dark mode filter to images
-  if (pageFlip) {
-    const images = document.querySelectorAll('#book img');
-    images.forEach(img => {
-      if (isDarkMode) {
-        img.classList.add('dark-mode-img');
-      } else {
-        img.classList.remove('dark-mode-img');
-      }
-    });
   }
 }
 
@@ -278,16 +207,6 @@ function applyImmersiveMode() {
   }
 }
 
-// Toggle immersive mode on center click
-document.addEventListener('click', (e) => {
-  const mainContent = document.getElementById('mainContent');
-  const isCenterClick = !e.target.closest('button') && !e.target.closest('input') && !e.target.closest('#book');
-
-  if (isCenterClick && mainContent.contains(e.target)) {
-    toggleImmersiveMode();
-  }
-});
-
 // Surah Modal
 function initSurahModal() {
   const modal = document.getElementById('surahModal');
@@ -296,7 +215,6 @@ function initSurahModal() {
   const list = document.getElementById('surahList');
   const search = document.getElementById('surahSearch');
 
-  // Render surah list
   function renderSurahList(filter = '') {
     const filtered = SURAH_DATA.filter(([num, name]) => {
       const searchStr = `${num} ${name}`.toLowerCase();
@@ -426,7 +344,6 @@ function initBookmarkModal() {
     const note = prompt('Tambahkan catatan (opsional):');
     const bookmarks = initBookmarks();
 
-    // Check if bookmark already exists
     const existingIndex = bookmarks.findIndex(bm => bm.page === currentPage);
 
     if (existingIndex >= 0) {
@@ -460,7 +377,7 @@ function loadState() {
   }
 }
 
-// Navigation event listeners - QURAN RTL (REVERSED)
+// Navigation event listeners
 function initNavigation() {
   // Previous button (goes to lower page number)
   document.getElementById('prevBtn').addEventListener('click', () => {
@@ -482,7 +399,7 @@ function initNavigation() {
   // Immersive mode toggle
   document.getElementById('immersiveBtn').addEventListener('click', toggleImmersiveMode);
 
-  // Exit fullscreen button (for immersive mode)
+  // Exit fullscreen button
   document.getElementById('exitFullscreenBtn').addEventListener('click', () => {
     isImmersiveMode = false;
     applyImmersiveMode();
@@ -492,16 +409,14 @@ function initNavigation() {
   // Keyboard navigation - REVERSED for Quran RTL
   document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowLeft' && currentPage < TOTAL_PAGES) {
-      // Left arrow = next page (forward in Quran)
       navigateToPage(currentPage + 1);
     } else if (e.key === 'ArrowRight' && currentPage > 1) {
-      // Right arrow = previous page (backward in Quran)
       navigateToPage(currentPage - 1);
     }
   });
 }
 
-// Touch/swipe support for mobile - REVERSED for Quran RTL
+// Touch/swipe support - REVERSED for Quran RTL
 function initTouchSupport() {
   let touchStartX = 0;
   let touchStartY = 0;
@@ -526,20 +441,17 @@ function initTouchSupport() {
     const verticalDiff = Math.abs(touchEndY - touchStartY);
     const horizontalDiff = touchStartX - touchEndX;
 
-    // Only trigger swipe if horizontal movement is greater than vertical
     if (Math.abs(horizontalDiff) > swipeThreshold && Math.abs(horizontalDiff) > verticalDiff) {
       if (horizontalDiff > 0 && currentPage < TOTAL_PAGES) {
-        // Swipe left = next page (forward in Quran, like turning a page right-to-left)
         navigateToPage(currentPage + 1);
       } else if (horizontalDiff < 0 && currentPage > 1) {
-        // Swipe right = previous page (backward in Quran)
         navigateToPage(currentPage - 1);
       }
     }
   }
 }
 
-// Jump pages function for quick navigation
+// Jump pages function
 window.jumpPages = function(amount) {
   const newPage = currentPage + amount;
   if (newPage >= 1 && newPage <= TOTAL_PAGES) {
@@ -549,23 +461,16 @@ window.jumpPages = function(amount) {
 
 // Initialize app
 async function init() {
-  // Load saved state
   loadState();
   initTheme();
   initImmersiveMode();
-
-  // Initialize PageFlip
-  initPageFlip();
-
-  // Initialize UI components
   initNavigation();
   initSurahModal();
   initBookmarkModal();
   initTouchSupport();
 
-  // Initial UI update
   updateUI();
+  loadPage(currentPage);
 }
 
-// Start the app when DOM is ready
 document.addEventListener('DOMContentLoaded', init);
