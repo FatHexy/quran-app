@@ -81,13 +81,13 @@ function initPageFlip() {
   const isMobile = window.innerWidth < 768;
 
   pageFlip = new PageFlip(bookElement, {
-    width: isMobile ? window.innerWidth : 800,
-    height: isMobile ? window.innerWidth * 1.414 : 1131,
+    width: isMobile ? window.innerWidth - 4 : 800,
+    height: isMobile ? (window.innerWidth - 4) * 1.414 : 1131,
     size: 'stretch',
     minWidth: 300,
-    maxWidth: isMobile ? window.innerWidth : 1600,
+    maxWidth: 1600,
     minHeight: 424,
-    maxHeight: isMobile ? window.innerWidth * 1.414 : 2262,
+    maxHeight: 2262,
     maxShadowOpacity: 0.3,
     showCover: false,
     mobileScrollSupport: false,
@@ -114,36 +114,68 @@ function initPageFlip() {
       saveState();
     }
   });
+
+  // Handle orientation change for mobile
+  window.addEventListener('resize', () => {
+    const newIsMobile = window.innerWidth < 768;
+    if (newIsMobile !== isMobile) {
+      location.reload();
+    }
+  });
 }
 
 // Load pages dynamically
 async function loadPages(startPage) {
-  const pagesHtml = [];
+  const pages = [];
 
-  // Load current page and next few pages
+  console.log('Loading pages starting from:', startPage);
+
+  // Create page elements
   for (let i = 0; i < 3; i++) {
     const pageNum = startPage + i;
     if (pageNum > TOTAL_PAGES) break;
 
-    const imgUrl = preloader.getImageUrl(pageNum);
-    const imgClass = isDarkMode ? 'dark-mode-img' : '';
+    const pageDiv = document.createElement('div');
+    pageDiv.className = 'page';
 
-    pagesHtml.push(`
-      <div class="page" data-density="hard">
-        <div class="page-content w-full h-full flex items-center justify-center bg-white dark:bg-gray-800">
-          <img
-            src="${imgUrl}"
-            alt="Halaman ${pageNum}"
-            class="w-full h-full object-contain ${imgClass}"
-            loading="lazy"
-            onerror="this.parentElement.innerHTML='<div class=\\'flex items-center justify-center h-full text-gray-500\\'><div><svg class=\\'w-12 h-12 mx-auto mb-2\\' fill=\\'none\\' stroke=\\'currentColor\\' viewBox=\\'0 0 24 24\\'><path stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\' stroke-width=\\'2\\' d=\\'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z\\'/></svg><p>Gagal memuat halaman ${pageNum}</p><button onclick=\\'retryPage(${pageNum})\\' class=\\'mt-2 px-4 py-2 bg-emerald-600 text-white rounded-lg\\'>Coba Lagi</button></div></div>'"
-          />
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'page-content';
+    contentDiv.style.cssText = 'width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: white;';
+
+    const img = document.createElement('img');
+    const imgUrl = preloader.getImageUrl(pageNum);
+    console.log('Loading image:', imgUrl);
+
+    img.src = imgUrl;
+    img.alt = `Halaman ${pageNum}`;
+    img.className = isDarkMode ? 'dark-mode-img' : '';
+    img.style.cssText = 'width: 100%; height: 100%; object-fit: contain; display: block;';
+
+    img.onload = () => {
+      console.log('Image loaded successfully:', pageNum);
+    };
+
+    img.onerror = () => {
+      console.error('Failed to load image:', imgUrl);
+      contentDiv.innerHTML = `
+        <div class="flex flex-col items-center justify-center h-full text-gray-500 p-4">
+          <svg class="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+          <p class="text-sm">Gagal memuat halaman ${pageNum}</p>
+          <button onclick="retryPage(${pageNum})" class="mt-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm">Coba Lagi</button>
         </div>
-      </div>
-    `);
+      `;
+    };
+
+    contentDiv.appendChild(img);
+    pageDiv.appendChild(contentDiv);
+    pages.push(pageDiv);
   }
 
-  await pageFlip.loadFromHTML(pagesHtml);
+  console.log('Loading', pages.length, 'pages into PageFlip');
+  await pageFlip.loadFromHTML(pages);
+  console.log('Pages loaded successfully');
   await preloader.preloadPages(startPage);
 }
 
