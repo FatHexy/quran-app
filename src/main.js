@@ -77,25 +77,28 @@ const preloader = new ImagePreloader();
 function initPageFlip() {
   const bookElement = document.getElementById('book');
 
+  // Detect mobile
+  const isMobile = window.innerWidth < 768;
+
   pageFlip = new PageFlip(bookElement, {
-    width: 800,
-    height: 1131, // A4 ratio (1:1.414)
+    width: isMobile ? window.innerWidth : 800,
+    height: isMobile ? window.innerWidth * 1.414 : 1131,
     size: 'stretch',
     minWidth: 300,
-    maxWidth: 1600,
+    maxWidth: isMobile ? window.innerWidth : 1600,
     minHeight: 424,
-    maxHeight: 2262,
-    maxShadowOpacity: 0.5,
+    maxHeight: isMobile ? window.innerWidth * 1.414 : 2262,
+    maxShadowOpacity: 0.3,
     showCover: false,
     mobileScrollSupport: false,
     useMouseEvents: true,
-    swipeDistance: 30,
+    swipeDistance: isMobile ? 40 : 30,
     clickEventForward: true,
-    usePortrait: true,
+    usePortrait: isMobile,
     startPage: 1,
     drawShadow: true,
-    flippingTime: 600,
-    usePortrait: true
+    flippingTime: isMobile ? 400 : 600,
+    usePortrait: isMobile
   });
 
   // Load initial pages
@@ -452,35 +455,51 @@ function initNavigation() {
   });
 }
 
-// Touch/swipe support for mobile
+// Touch/swipe support for mobile - improved
 function initTouchSupport() {
   let touchStartX = 0;
+  let touchStartY = 0;
   let touchEndX = 0;
+  let touchEndY = 0;
 
-  document.addEventListener('touchstart', (e) => {
+  const bookElement = document.getElementById('book');
+
+  bookElement.addEventListener('touchstart', (e) => {
     touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
   }, { passive: true });
 
-  document.addEventListener('touchend', (e) => {
+  bookElement.addEventListener('touchend', (e) => {
     touchEndX = e.changedTouches[0].screenX;
+    touchEndY = e.changedTouches[0].screenY;
     handleSwipe();
   }, { passive: true });
 
   function handleSwipe() {
-    const swipeThreshold = 50;
-    const diff = touchStartX - touchEndX;
+    const swipeThreshold = 40;
+    const verticalDiff = Math.abs(touchEndY - touchStartY);
+    const horizontalDiff = touchStartX - touchEndX;
 
-    if (Math.abs(diff) > swipeThreshold) {
-      if (diff > 0 && currentPage < TOTAL_PAGES) {
+    // Only trigger swipe if horizontal movement is greater than vertical
+    if (Math.abs(horizontalDiff) > swipeThreshold && Math.abs(horizontalDiff) > verticalDiff) {
+      if (horizontalDiff > 0 && currentPage < TOTAL_PAGES) {
         // Swipe left - next page
         navigateToPage(currentPage + 1);
-      } else if (diff < 0 && currentPage > 1) {
+      } else if (horizontalDiff < 0 && currentPage > 1) {
         // Swipe right - previous page
         navigateToPage(currentPage - 1);
       }
     }
   }
 }
+
+// Jump pages function for quick navigation
+window.jumpPages = function(amount) {
+  const newPage = currentPage + amount;
+  if (newPage >= 1 && newPage <= TOTAL_PAGES) {
+    navigateToPage(newPage);
+  }
+};
 
 // Initialize app
 async function init() {
