@@ -6,7 +6,6 @@ const IMAGE_BASE_URL = 'https://media.qurankemenag.net/khat2/QK_';
 
 // App State
 let currentPage = 1;
-let isDarkMode = false;
 let isImmersiveMode = false;
 let preloadedImages = new Map();
 
@@ -14,7 +13,6 @@ let preloadedImages = new Map();
 const STORAGE_KEYS = {
   LAST_PAGE: 'quran_last_page',
   BOOKMARKS: 'quran_bookmarks',
-  THEME: 'quran_theme',
   IMMERSIVE: 'quran_immersive'
 };
 
@@ -48,15 +46,16 @@ function loadPage(page) {
   const bookContainer = document.getElementById('book');
   const imgUrl = getImageUrl(page);
 
-  // Create page container
+  // Create page container - no background, clean
   bookContainer.innerHTML = `
-    <div class="quran-page-container relative w-full h-full flex items-center justify-center bg-white dark:bg-gray-800">
+    <div class="quran-page-container relative w-full h-full flex items-center justify-center">
       <img
         id="quranPageImage"
         src="${imgUrl}"
         alt="Halaman ${page}"
-        class="w-full h-auto max-w-full ${isDarkMode ? 'dark-mode-img' : ''}"
+        class="w-full h-auto max-w-full"
         loading="eager"
+        style="display: block;"
       />
 
       <!-- Left tap zone - Next page (Quran RTL) -->
@@ -79,11 +78,6 @@ function loadPage(page) {
         class="absolute top-0 bottom-0 left-1/3 right-1/3 cursor-pointer z-10"
         title="Mode Imersif"
       ></div>
-
-      <!-- Loading overlay -->
-      <div id="loadingOverlay" class="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-900 hidden">
-        <div class="spinner w-8 h-8"></div>
-      </div>
     </div>
   `;
 
@@ -148,36 +142,6 @@ function navigateToPage(page) {
   saveState();
 }
 
-// Theme management
-function initTheme() {
-  const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME);
-  isDarkMode = savedTheme === 'dark';
-  applyTheme();
-}
-
-function toggleTheme() {
-  isDarkMode = !isDarkMode;
-  applyTheme();
-  localStorage.setItem(STORAGE_KEYS.THEME, isDarkMode ? 'dark' : 'light');
-  // Reload page to apply theme to current image
-  loadPage(currentPage);
-}
-
-function applyTheme() {
-  document.documentElement.classList.toggle('dark', isDarkMode);
-
-  const sunIcon = document.getElementById('sunIcon');
-  const moonIcon = document.getElementById('moonIcon');
-
-  if (isDarkMode) {
-    sunIcon.classList.remove('hidden');
-    moonIcon.classList.add('hidden');
-  } else {
-    sunIcon.classList.add('hidden');
-    moonIcon.classList.remove('hidden');
-  }
-}
-
 // Immersive mode
 function initImmersiveMode() {
   const saved = localStorage.getItem(STORAGE_KEYS.IMMERSIVE);
@@ -224,18 +188,21 @@ function initSurahModal() {
     list.innerHTML = filtered.map(([num, name, arabic, startPage]) => `
       <button
         onclick="goToSurah(${startPage})"
-        class="w-full p-3 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+        class="w-full p-3 flex items-center justify-between rounded-lg transition-all hover:scale-[1.02]"
+        style="background-color: #faf8f3;"
+        onmouseover="this.style.backgroundColor='#e6e2d8'"
+        onmouseout="this.style.backgroundColor='#faf8f3'"
       >
         <div class="flex items-center gap-3">
-          <span class="w-8 h-8 flex items-center justify-center bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 rounded-full text-sm font-bold">
+          <span class="w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold" style="background-color: #d4a574; color: #faf8f3;">
             ${num}
           </span>
           <div class="text-left">
-            <p class="font-medium text-gray-900 dark:text-white">${name}</p>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Halaman ${startPage}</p>
+            <p class="font-medium" style="color: #5c4b37;">${name}</p>
+            <p class="text-xs" style="color: #8b7355;">Halaman ${startPage}</p>
           </div>
         </div>
-        <span class="text-2xl text-gray-700 dark:text-gray-300">${arabic}</span>
+        <span class="text-2xl" style="color: #5c4b37;">${arabic}</span>
       </button>
     `).join('');
   }
@@ -279,7 +246,7 @@ function renderBookmarkList() {
 
   if (bookmarks.length === 0) {
     list.innerHTML = `
-      <div class="flex flex-col items-center justify-center py-12 text-gray-500 dark:text-gray-400">
+      <div class="flex flex-col items-center justify-center py-12" style="color: #8b7355;">
         <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
         </svg>
@@ -290,16 +257,19 @@ function renderBookmarkList() {
   }
 
   list.innerHTML = bookmarks.map((bm, index) => `
-    <div class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg mb-2">
-      <div class="flex items-start justify-between">
-        <div class="flex-1">
-          <button onclick="goToBookmark(${bm.page})" class="text-left">
-            <p class="font-medium text-gray-900 dark:text-white">Halaman ${bm.page}</p>
-            <p class="text-sm text-gray-500 dark:text-gray-400">${bm.date}</p>
-            ${bm.note ? `<p class="text-sm text-gray-600 dark:text-gray-300 mt-1">${bm.note}</p>` : ''}
-          </button>
-        </div>
-        <button onclick="deleteBookmark(${index})" class="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg">
+    <div class="p-3 rounded-lg mb-2 transition-all hover:scale-[1.02]" style="background-color: #faf8f3;" onmouseover="this.style.backgroundColor='#e6e2d8'" onmouseout="this.style.backgroundColor='#faf8f3'">
+      <div class="flex items-start justify-between gap-2">
+        <button onclick="goToBookmark(${bm.page})" class="flex-1 text-left">
+          <div class="flex items-center gap-2 mb-1">
+            <svg class="w-5 h-5" style="color: #d4a574;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            <p class="font-bold" style="color: #5c4b37;">Halaman ${bm.page}</p>
+          </div>
+          <p class="text-xs" style="color: #8b7355;">${bm.date}</p>
+          ${bm.note ? `<p class="text-sm mt-1" style="color: #5c4b37;">${bm.note}</p>` : ''}
+        </button>
+        <button onclick="deleteBookmark(${index})" class="p-2 rounded-lg hover:bg-red-100 transition-colors" style="color: #c05850;">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
           </svg>
@@ -393,9 +363,6 @@ function initNavigation() {
     navigateToPage(parseInt(e.target.value));
   });
 
-  // Theme toggle
-  document.getElementById('themeToggle').addEventListener('click', toggleTheme);
-
   // Immersive mode toggle
   document.getElementById('immersiveBtn').addEventListener('click', toggleImmersiveMode);
 
@@ -462,7 +429,6 @@ window.jumpPages = function(amount) {
 // Initialize app
 async function init() {
   loadState();
-  initTheme();
   initImmersiveMode();
   initNavigation();
   initSurahModal();

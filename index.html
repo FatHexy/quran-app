@@ -7,6 +7,22 @@
   <meta name="mobile-web-app-capable" content="yes">
   <title>Al-Qur'an Digital Mushaf</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            quran: {
+              bg: '#f1eee5',
+              accent: '#d4a574',
+              text: '#5c4b37',
+              light: '#faf8f3'
+            }
+          }
+        }
+      }
+    }
+  </script>
   <style>
     * {
       -webkit-tap-highlight-color: transparent;
@@ -18,9 +34,10 @@
       overscroll-behavior: none;
       touch-action: pan-y pinch-zoom;
       overflow-x: hidden;
+      background-color: #f1eee5;
     }
 
-    /* Mobile-first responsive container */
+    /* Page container - no box, clean */
     .page-book {
       width: 100%;
       max-width: 100%;
@@ -32,14 +49,7 @@
     @media (min-width: 768px) {
       .page-book {
         max-width: 800px;
-        aspect-ratio: 2 / 1.414;
       }
-    }
-
-    /* Dark mode filter for images */
-    .dark-mode-img {
-      filter: brightness(0.85) sepia(0.15);
-      transition: filter 0.3s ease;
     }
 
     /* Immersive mode transitions */
@@ -53,7 +63,7 @@
       transform: translateY(-10px);
     }
 
-    /* Custom scrollbar for surah list */
+    /* Custom scrollbar */
     .custom-scrollbar::-webkit-scrollbar {
       width: 4px;
     }
@@ -61,24 +71,18 @@
       background: transparent;
     }
     .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
+      background: #d4a574;
       border-radius: 2px;
     }
-    .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #475569;
-    }
 
-    /* Range slider styling - mobile optimized */
+    /* Range slider styling - Quran themed */
     input[type="range"] {
       -webkit-appearance: none;
       appearance: none;
       height: 6px;
       border-radius: 3px;
-      background: #e2e8f0;
+      background: #d4a574;
       width: 100%;
-    }
-    .dark input[type="range"] {
-      background: #475569;
     }
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
@@ -86,9 +90,9 @@
       width: 24px;
       height: 24px;
       border-radius: 50%;
-      background: #059669;
+      background: #8b7355;
       cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      box-shadow: 0 2px 6px rgba(92, 75, 55, 0.2);
     }
     input[type="range"]::-webkit-slider-thumb:active {
       transform: scale(1.1);
@@ -96,29 +100,13 @@
 
     /* Loading spinner */
     .spinner {
-      border: 3px solid #e5e7eb;
-      border-top-color: #059669;
+      border: 3px solid #e6e2d8;
+      border-top-color: #8b7355;
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
     @keyframes spin {
       to { transform: rotate(360deg); }
-    }
-
-    /* Page flip styles - mobile optimized */
-    .stf__wrapper {
-      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
-      touch-action: none;
-    }
-
-    .stf__page {
-      background: white;
-      overflow: hidden;
-      touch-action: none;
-    }
-
-    .dark .stf__page {
-      background: #1e293b;
     }
 
     /* Mobile touch targets */
@@ -142,53 +130,54 @@
     .quran-page.loading {
       opacity: 0.5;
     }
+
+    /* Modal styling - Quran themed */
+    .modal-backdrop {
+      background-color: rgba(92, 75, 55, 0.5);
+    }
+
+    .modal-content {
+      background-color: #faf8f3;
+      border: none;
+      box-shadow: 0 10px 40px rgba(92, 75, 55, 0.2);
+    }
   </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
+<body class="min-h-screen" style="background-color: #f1eee5;">
   <div id="app" class="flex flex-col min-h-screen">
 
-    <!-- Header - Mobile optimized -->
-    <header id="header" class="ui-element bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-50">
+    <!-- Header - Clean, no borders -->
+    <header id="header" class="ui-element sticky top-0 z-50" style="background-color: #f1eee5;">
       <div class="px-2 sm:px-4 py-2 sm:py-3 flex items-center justify-between">
         <div class="flex items-center gap-2 sm:gap-3">
-          <div class="w-8 h-8 sm:w-10 sm:h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
-            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center" style="background-color: #d4a574; border-radius: 8px;">
+            <svg class="w-5 h-5 sm:w-6 sm:h-6" style="color: #faf8f3;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
             </svg>
           </div>
           <div>
-            <h1 class="text-base sm:text-lg font-bold text-gray-900 dark:text-white">Al-Qur'an Digital</h1>
-            <p class="text-xs text-gray-500 dark:text-gray-400 hidden sm:block">Mushaf Kemenag RI</p>
+            <h1 class="text-base sm:text-lg font-bold" style="color: #5c4b37;">Al-Qur'an Digital</h1>
+            <p class="text-xs hidden sm:block" style="color: #8b7355;">Mushaf Kemenag RI</p>
           </div>
         </div>
 
         <div class="flex items-center gap-1 sm:gap-2">
           <!-- Surah Button -->
-          <button id="surahBtn" class="touch-target p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">
+          <button id="surahBtn" class="touch-target p-2 rounded-lg hover:bg-opacity-80 transition-colors" style="color: #5c4b37;" onmouseover="this.style.backgroundColor='#e6e2d8'" onmouseout="this.style.backgroundColor='transparent'">
             <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
             </svg>
           </button>
 
           <!-- Bookmark Button -->
-          <button id="bookmarkBtn" class="touch-target p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">
+          <button id="bookmarkBtn" class="touch-target p-2 rounded-lg hover:bg-opacity-80 transition-colors" style="color: #5c4b37;" onmouseover="this.style.backgroundColor='#e6e2d8'" onmouseout="this.style.backgroundColor='transparent'">
             <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
             </svg>
           </button>
 
-          <!-- Theme Toggle -->
-          <button id="themeToggle" class="touch-target p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">
-            <svg id="sunIcon" class="w-5 h-5 sm:w-6 sm:h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-            </svg>
-            <svg id="moonIcon" class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-            </svg>
-          </button>
-
           <!-- Immersive Mode -->
-          <button id="immersiveBtn" class="touch-target p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">
+          <button id="immersiveBtn" class="touch-target p-2 rounded-lg hover:bg-opacity-80 transition-colors" style="color: #5c4b37;" onmouseover="this.style.backgroundColor='#e6e2d8'" onmouseout="this.style.backgroundColor='transparent'">
             <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
             </svg>
@@ -199,31 +188,31 @@
 
     <!-- Main Content -->
     <main id="mainContent" class="flex-1 flex items-center justify-center p-0 sm:p-4 ui-element relative">
-      <div class="w-full flex flex-col items-center bg-white dark:bg-gray-800">
-        <!-- Page flip container -->
+      <div class="w-full flex flex-col items-center" style="background-color: #f1eee5;">
+        <!-- Page container - no box -->
         <div id="book" class="page-book"></div>
 
         <!-- Loading indicator -->
-        <div id="loadingIndicator" class="hidden flex items-center gap-3 py-4 text-gray-600 dark:text-gray-400">
+        <div id="loadingIndicator" class="hidden flex items-center gap-3 py-4" style="color: #8b7355;">
           <div class="spinner w-6 h-6"></div>
           <span class="text-sm">Memuat halaman...</span>
         </div>
       </div>
 
       <!-- Fullscreen Exit Button (visible in immersive mode) -->
-      <button id="exitFullscreenBtn" class="hidden fixed top-4 right-4 z-50 touch-target p-3 bg-black/50 hover:bg-black/70 rounded-full text-white">
+      <button id="exitFullscreenBtn" class="hidden fixed top-4 right-4 z-50 touch-target p-3 rounded-full shadow-lg transition-all hover:scale-110" style="background-color: #8b7355; color: #faf8f3;">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
         </svg>
       </button>
     </main>
 
-    <!-- Footer Controls - Mobile optimized -->
-    <footer id="footer" class="ui-element bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 sticky bottom-0 z-50">
+    <!-- Footer Controls - Clean design -->
+    <footer id="footer" class="ui-element sticky bottom-0 z-50" style="background-color: #f1eee5;">
       <div class="px-2 sm:px-4 py-3 sm:py-4">
         <div class="flex items-center gap-2 sm:gap-4">
-          <!-- Next Page Button (physically on left, but goes forward in Quran) - Larger touch target -->
-          <button id="nextBtn" class="touch-target p-3 sm:p-3 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" title="Halaman Selanjutnya">
+          <!-- Previous Button -->
+          <button id="prevBtn" class="touch-target p-3 rounded-full text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105" style="background-color: #8b7355;">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
             </svg>
@@ -232,34 +221,34 @@
           <!-- Page Slider -->
           <div class="flex-1 min-w-0">
             <div class="flex items-center justify-between mb-1 sm:mb-2">
-              <span class="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+              <span class="text-xs sm:text-sm font-medium" style="color: #5c4b37;">
                 Halaman <span id="currentPageDisplay">1</span>
               </span>
-              <span class="text-xs text-gray-500 dark:text-gray-400">/ 604</span>
+              <span class="text-xs" style="color: #8b7355;">/ 604</span>
             </div>
             <input type="range" id="pageSlider" min="1" max="604" value="1" class="w-full">
           </div>
 
-          <!-- Previous Page Button (physically on right, but goes backward in Quran) - Larger touch target -->
-          <button id="prevBtn" class="touch-target p-3 sm:p-3 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" title="Halaman Sebelumnya">
+          <!-- Next Button -->
+          <button id="nextBtn" class="touch-target p-3 rounded-full text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105" style="background-color: #8b7355;">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
             </svg>
           </button>
         </div>
 
-        <!-- Page jump buttons for quick navigation -->
+        <!-- Page jump buttons -->
         <div class="flex justify-center gap-2 mt-3">
-          <button onclick="jumpPages(-10)" class="px-3 py-1 text-xs bg-gray-200 dark:bg-gray-700 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600">
+          <button onclick="jumpPages(-10)" class="px-3 py-1 text-xs rounded-lg transition-all hover:scale-105" style="background-color: #e6e2d8; color: #5c4b37;">
             -10
           </button>
-          <button onclick="jumpPages(-5)" class="px-3 py-1 text-xs bg-gray-200 dark:bg-gray-700 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600">
+          <button onclick="jumpPages(-5)" class="px-3 py-1 text-xs rounded-lg transition-all hover:scale-105" style="background-color: #e6e2d8; color: #5c4b37;">
             -5
           </button>
-          <button onclick="jumpPages(5)" class="px-3 py-1 text-xs bg-gray-200 dark:bg-gray-700 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600">
+          <button onclick="jumpPages(5)" class="px-3 py-1 text-xs rounded-lg transition-all hover:scale-105" style="background-color: #e6e2d8; color: #5c4b37;">
             +5
           </button>
-          <button onclick="jumpPages(10)" class="px-3 py-1 text-xs bg-gray-200 dark:bg-gray-700 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600">
+          <button onclick="jumpPages(10)" class="px-3 py-1 text-xs rounded-lg transition-all hover:scale-105" style="background-color: #e6e2d8; color: #5c4b37;">
             +10
           </button>
         </div>
@@ -268,39 +257,39 @@
   </div>
 
   <!-- Surah Modal -->
-  <div id="surahModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-end sm:items-center justify-center">
-    <div class="bg-white dark:bg-gray-800 w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl max-h-[85vh] flex flex-col">
-      <div class="p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700">
+  <div id="surahModal" class="modal-backdrop fixed inset-0 z-50 hidden flex items-end sm:items-center justify-center">
+    <div class="modal-content w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl max-h-[85vh] flex flex-col">
+      <div class="p-3 sm:p-4 border-b" style="border-color: #e6e2d8;">
         <div class="flex items-center justify-between mb-3 sm:mb-4">
-          <h2 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Daftar Surah</h2>
-          <button id="closeSurahModal" class="touch-target p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
-            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <h2 class="text-lg sm:text-xl font-bold" style="color: #5c4b37;">Daftar Surah</h2>
+          <button id="closeSurahModal" class="touch-target p-2 rounded-lg hover:bg-opacity-80" style="color: #8b7355;" onmouseover="this.style.backgroundColor='#e6e2d8'" onmouseout="this.style.backgroundColor='transparent'">
+            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
           </button>
         </div>
-        <input type="text" id="surahSearch" placeholder="Cari surah..." class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm sm:text-base">
+        <input type="text" id="surahSearch" placeholder="Cari surah..." class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-sm sm:text-base" style="background-color: #faf8f3; border: 1px solid #e6e2d8; color: #5c4b37;">
       </div>
       <div id="surahList" class="flex-1 overflow-y-auto custom-scrollbar p-2"></div>
     </div>
   </div>
 
   <!-- Bookmark Modal -->
-  <div id="bookmarkModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-end sm:items-center justify-center">
-    <div class="bg-white dark:bg-gray-800 w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl max-h-[85vh] flex flex-col">
-      <div class="p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700">
+  <div id="bookmarkModal" class="modal-backdrop fixed inset-0 z-50 hidden flex items-end sm:items-center justify-center">
+    <div class="modal-content w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl max-h-[85vh] flex flex-col">
+      <div class="p-3 sm:p-4 border-b" style="border-color: #e6e2d8;">
         <div class="flex items-center justify-between">
-          <h2 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Penanda Halaman</h2>
-          <button id="closeBookmarkModal" class="touch-target p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
-            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <h2 class="text-lg sm:text-xl font-bold" style="color: #5c4b37;">Penanda Halaman</h2>
+          <button id="closeBookmarkModal" class="touch-target p-2 rounded-lg hover:bg-opacity-80" style="color: #8b7355;" onmouseover="this.style.backgroundColor='#e6e2d8'" onmouseout="this.style.backgroundColor='transparent'">
+            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
           </button>
         </div>
       </div>
       <div id="bookmarkList" class="flex-1 overflow-y-auto custom-scrollbar p-2"></div>
-      <div class="p-3 sm:p-4 border-t border-gray-200 dark:border-gray-700">
-        <button id="addBookmarkBtn" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium text-sm sm:text-base">
+      <div class="p-3 sm:p-4 border-t" style="border-color: #e6e2d8;">
+        <button id="addBookmarkBtn" class="w-full py-3 text-white rounded-lg font-medium text-sm sm:text-base transition-all hover:scale-105" style="background-color: #8b7355;">
           Tambah Penanda Halaman Ini
         </button>
       </div>
