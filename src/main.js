@@ -265,13 +265,16 @@ function toggleImmersiveMode() {
 function applyImmersiveMode() {
   const header = document.getElementById('header');
   const footer = document.getElementById('footer');
+  const exitBtn = document.getElementById('exitFullscreenBtn');
 
   if (isImmersiveMode) {
     header.classList.add('immersive-hidden');
     footer.classList.add('immersive-hidden');
+    exitBtn.classList.remove('hidden');
   } else {
     header.classList.remove('immersive-hidden');
     footer.classList.remove('immersive-hidden');
+    exitBtn.classList.add('hidden');
   }
 }
 
@@ -457,12 +460,14 @@ function loadState() {
   }
 }
 
-// Navigation event listeners
+// Navigation event listeners - QURAN RTL (REVERSED)
 function initNavigation() {
+  // Previous button (goes to lower page number)
   document.getElementById('prevBtn').addEventListener('click', () => {
     if (currentPage > 1) navigateToPage(currentPage - 1);
   });
 
+  // Next button (goes to higher page number)
   document.getElementById('nextBtn').addEventListener('click', () => {
     if (currentPage < TOTAL_PAGES) navigateToPage(currentPage + 1);
   });
@@ -477,17 +482,26 @@ function initNavigation() {
   // Immersive mode toggle
   document.getElementById('immersiveBtn').addEventListener('click', toggleImmersiveMode);
 
-  // Keyboard navigation
+  // Exit fullscreen button (for immersive mode)
+  document.getElementById('exitFullscreenBtn').addEventListener('click', () => {
+    isImmersiveMode = false;
+    applyImmersiveMode();
+    localStorage.setItem(STORAGE_KEYS.IMMERSIVE, 'false');
+  });
+
+  // Keyboard navigation - REVERSED for Quran RTL
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowLeft' && currentPage > 1) {
-      navigateToPage(currentPage - 1);
-    } else if (e.key === 'ArrowRight' && currentPage < TOTAL_PAGES) {
+    if (e.key === 'ArrowLeft' && currentPage < TOTAL_PAGES) {
+      // Left arrow = next page (forward in Quran)
       navigateToPage(currentPage + 1);
+    } else if (e.key === 'ArrowRight' && currentPage > 1) {
+      // Right arrow = previous page (backward in Quran)
+      navigateToPage(currentPage - 1);
     }
   });
 }
 
-// Touch/swipe support for mobile - improved
+// Touch/swipe support for mobile - REVERSED for Quran RTL
 function initTouchSupport() {
   let touchStartX = 0;
   let touchStartY = 0;
@@ -515,10 +529,10 @@ function initTouchSupport() {
     // Only trigger swipe if horizontal movement is greater than vertical
     if (Math.abs(horizontalDiff) > swipeThreshold && Math.abs(horizontalDiff) > verticalDiff) {
       if (horizontalDiff > 0 && currentPage < TOTAL_PAGES) {
-        // Swipe left - next page
+        // Swipe left = next page (forward in Quran, like turning a page right-to-left)
         navigateToPage(currentPage + 1);
       } else if (horizontalDiff < 0 && currentPage > 1) {
-        // Swipe right - previous page
+        // Swipe right = previous page (backward in Quran)
         navigateToPage(currentPage - 1);
       }
     }

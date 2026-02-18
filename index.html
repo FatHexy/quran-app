@@ -198,7 +198,7 @@
     </header>
 
     <!-- Main Content -->
-    <main id="mainContent" class="flex-1 flex items-center justify-center p-0 sm:p-4 ui-element">
+    <main id="mainContent" class="flex-1 flex items-center justify-center p-0 sm:p-4 ui-element relative">
       <div class="w-full flex flex-col items-center bg-white dark:bg-gray-800">
         <!-- Page flip container -->
         <div id="book" class="page-book"></div>
@@ -209,14 +209,21 @@
           <span class="text-sm">Memuat halaman...</span>
         </div>
       </div>
+
+      <!-- Fullscreen Exit Button (visible in immersive mode) -->
+      <button id="exitFullscreenBtn" class="hidden fixed top-4 right-4 z-50 touch-target p-3 bg-black/50 hover:bg-black/70 rounded-full text-white">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
     </main>
 
     <!-- Footer Controls - Mobile optimized -->
     <footer id="footer" class="ui-element bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 sticky bottom-0 z-50">
       <div class="px-2 sm:px-4 py-3 sm:py-4">
         <div class="flex items-center gap-2 sm:gap-4">
-          <!-- Previous Button - Larger touch target -->
-          <button id="prevBtn" class="touch-target p-3 sm:p-3 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+          <!-- Next Page Button (physically on left, but goes forward in Quran) - Larger touch target -->
+          <button id="nextBtn" class="touch-target p-3 sm:p-3 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" title="Halaman Selanjutnya">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
             </svg>
@@ -233,8 +240,8 @@
             <input type="range" id="pageSlider" min="1" max="604" value="1" class="w-full">
           </div>
 
-          <!-- Next Button - Larger touch target -->
-          <button id="nextBtn" class="touch-target p-3 sm:p-3 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+          <!-- Previous Page Button (physically on right, but goes backward in Quran) - Larger touch target -->
+          <button id="prevBtn" class="touch-target p-3 sm:p-3 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" title="Halaman Sebelumnya">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
             </svg>
