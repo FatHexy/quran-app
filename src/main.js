@@ -159,16 +159,13 @@ function toggleImmersiveMode() {
 function applyImmersiveMode() {
   const header = document.getElementById('header');
   const footer = document.getElementById('footer');
-  const exitBtn = document.getElementById('exitFullscreenBtn');
 
   if (isImmersiveMode) {
     header.classList.add('immersive-hidden');
     footer.classList.add('immersive-hidden');
-    exitBtn.classList.remove('hidden');
   } else {
     header.classList.remove('immersive-hidden');
     footer.classList.remove('immersive-hidden');
-    exitBtn.classList.add('hidden');
   }
 }
 
@@ -386,16 +383,11 @@ window.deleteBookmark = function(index) {
 function initBookmarkModal() {
   const modal = document.getElementById('bookmarkModal');
   const btn = document.getElementById('bookmarkBtn');
-  const closeBtn = document.getElementById('closeBookmarkModal');
   const addBtn = document.getElementById('addBookmarkBtn');
 
   btn.addEventListener('click', () => {
     renderBookmarkList();
     modal.classList.remove('hidden');
-  });
-
-  closeBtn.addEventListener('click', () => {
-    modal.classList.add('hidden');
   });
 
   modal.addEventListener('click', (e) => {
@@ -416,7 +408,6 @@ function initBookmarkModal() {
 function initSurahModal() {
   const modal = document.getElementById('surahModal');
   const btn = document.getElementById('surahBtn');
-  const closeBtn = document.getElementById('closeSurahModal');
   const list = document.getElementById('surahList');
   const search = document.getElementById('surahSearch');
 
@@ -451,10 +442,6 @@ function initSurahModal() {
   btn.addEventListener('click', () => {
     renderSurahList();
     modal.classList.remove('hidden');
-  });
-
-  closeBtn.addEventListener('click', () => {
-    modal.classList.add('hidden');
   });
 
   modal.addEventListener('click', (e) => {
@@ -495,14 +482,6 @@ function initNavigation() {
 
   document.getElementById('pageSlider').addEventListener('input', (e) => {
     navigateToPage(parseInt(e.target.value));
-  });
-
-  document.getElementById('immersiveBtn').addEventListener('click', toggleImmersiveMode);
-
-  document.getElementById('exitFullscreenBtn').addEventListener('click', () => {
-    isImmersiveMode = false;
-    applyImmersiveMode();
-    localStorage.setItem(STORAGE_KEYS.IMMERSIVE, 'false');
   });
 
   // Wake Lock toggle

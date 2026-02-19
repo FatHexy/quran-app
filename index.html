@@ -134,6 +134,16 @@
       box-shadow: 0 10px 40px rgba(92, 75, 55, 0.2);
     }
 
+    /* Tap outside hint */
+    .tap-hint {
+      animation: fadeHint 2s ease-in-out infinite;
+    }
+
+    @keyframes fadeHint {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+
     /* Bookmark popup */
     .bookmark-popup {
       position: fixed;
@@ -251,13 +261,6 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
             </svg>
           </button>
-
-          <!-- Immersive Mode -->
-          <button id="immersiveBtn" class="touch-target p-2 rounded-lg hover:bg-opacity-80 transition-colors" style="color: #5c4b37;" onmouseover="this.style.backgroundColor='#e6e2d8'" onmouseout="this.style.backgroundColor='transparent'">
-            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
-            </svg>
-          </button>
         </div>
       </div>
     </header>
@@ -273,13 +276,6 @@
           <span class="text-sm">Memuat halaman...</span>
         </div>
       </div>
-
-      <!-- Fullscreen Exit Button -->
-      <button id="exitFullscreenBtn" class="hidden fixed top-4 right-4 z-50 touch-target p-3 rounded-full shadow-lg transition-all hover:scale-110" style="background-color: #8b7355; color: #faf8f3;">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-        </svg>
-      </button>
     </main>
 
     <!-- Footer Controls -->
@@ -356,13 +352,9 @@
   <div id="surahModal" class="modal-backdrop fixed inset-0 z-50 hidden flex items-end sm:items-center justify-center">
     <div class="modal-content w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl max-h-[85vh] flex flex-col">
       <div class="p-3 sm:p-4 border-b" style="border-color: #e6e2d8;">
-        <div class="flex items-center justify-between mb-3 sm:mb-4">
+        <div class="mb-3 sm:mb-4">
           <h2 class="text-lg sm:text-xl font-bold" style="color: #5c4b37;">Daftar Surah</h2>
-          <button id="closeSurahModal" class="touch-target p-2 rounded-lg hover:bg-opacity-80" style="color: #8b7355;" onmouseover="this.style.backgroundColor='#e6e2d8'" onmouseout="this.style.backgroundColor='transparent'">
-            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-          </button>
+          <p class="text-xs tap-hint" style="color: #8b7355;">Tap di luar untuk menutup</p>
         </div>
         <input type="text" id="surahSearch" placeholder="Cari surah..." class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-sm sm:text-base" style="background-color: #faf8f3; border: 1px solid #e6e2d8; color: #5c4b37;">
       </div>
@@ -374,13 +366,9 @@
   <div id="bookmarkModal" class="modal-backdrop fixed inset-0 z-50 hidden flex items-end sm:items-center justify-center">
     <div class="modal-content w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl max-h-[85vh] flex flex-col">
       <div class="p-3 sm:p-4 border-b" style="border-color: #e6e2d8;">
-        <div class="flex items-center justify-between">
+        <div>
           <h2 class="text-lg sm:text-xl font-bold" style="color: #5c4b37;">Penanda Halaman</h2>
-          <button id="closeBookmarkModal" class="touch-target p-2 rounded-lg hover:bg-opacity-80" style="color: #8b7355;" onmouseover="this.style.backgroundColor='#e6e2d8'" onmouseout="this.style.backgroundColor='transparent'">
-            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-          </button>
+          <p class="text-xs tap-hint" style="color: #8b7355;">Tap di luar untuk menutup</p>
         </div>
       </div>
       <div id="bookmarkList" class="flex-1 overflow-y-auto custom-scrollbar p-2"></div>
